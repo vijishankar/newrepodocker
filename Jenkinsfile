@@ -1,26 +1,36 @@
 pipeline {
-    agent any
-    environment{
-        DOCKER_TAG = getDockerTag()
+  environment {
+    registry = "tbalaji/dockercredentials"
+    registryCredential = 'Balajibala'
+    dockerImage = ''
+  }
+  agent any
+  stages {
+    stage('Cloning Git') {
+      steps {
+        git 'git@github.com:vijishankar/newrepodocker.git'
+      }
     }
-    stages{
-        stage('Build Docker Image'){
-            steps{
-                sh "docker build . -t tbalaji/docker:${DOCKER_TAG}"
-            }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
         }
-        stage('Docker Image Push'){
-            steps{
-               
-                    sh "docker login -u tbalaji -p Balajibala"
-                   sh "docker push tbalaji/docker:${DOCKER_TAG}"
-                
-            }
-        }
+      }
     }
-}
-
-def getDockerTag(){
-    def tag  = sh script: 'git rev-parse HEAD', returnStdout: true
-    return tag
+    stage('Deploy Image') {
+      steps{
+        script {
+          docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+          }
+        }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+  }
 }
