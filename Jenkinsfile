@@ -6,14 +6,14 @@ pipeline {
     stages{
         stage('Build Docker Image'){
             steps{
-                sh "docker build . -t tbalaji/dockercredentials:${DOCKER_TAG}"
+                sh "docker build . -t tbalaji/docker:${DOCKER_TAG}"
             }
         }
         stage('Docker Image Push'){
             steps{
                
                     sh "docker login -u tbalaji -p Balajibala"
-                   sh "docker push tbalaji/dockercredentials:${DOCKER_TAG}"
+                   sh "docker push tbalaji/docker:${DOCKER_TAG}"
                 
             }
         }
